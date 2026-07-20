@@ -6,7 +6,9 @@ You write a brief; the system runs a gated production pipeline — script →
 casting → previz → take → QC — and never spends generation credits on
 anything you haven't approved.
 
-![Clip Factory](docs/images/clip-factory-cover.jpg)
+One brief in, one finished ad out — hook, product reveal, end card:
+
+![Frames from a finished ad](docs/images/lucetti-ad-frames.jpg)
 
 ## Why gates
 
@@ -26,7 +28,7 @@ the **cheap** stage:
 The approved previz frame is passed as the take's start image, so the
 video opens on exactly the look you signed off:
 
-![Previz still (left) becomes the take's opening frame (right)](docs/images/previz-to-take.png)
+![Previz still (left) becomes the take's opening frame (right)](docs/images/previz-to-take.jpg)
 
 ## The three surfaces
 
@@ -73,23 +75,33 @@ zoom + text) instead of burning a second video take:
 
 ![End card example](docs/images/endcard-example.jpg)
 
-## Video model economics
+## Video models: cost and strengths
 
-The full measured cost ladder and model strengths:
-**[docs/video-models.md](docs/video-models.md)**. The headline rules:
+Measured with free `get_cost` preflights at a standard ~10s, 720p, 9:16
+scene (July 2026 — prices move; the pipeline re-preflights before every
+spend). Full catalog with specialists and post tools:
+**[docs/video-models.md](docs/video-models.md)**.
 
-- Talking on camera → Marketing Studio (60 cr @12s / 75 @15s, 15s max).
-  It's the only speech+lipsync+product-lock package.
-- Scenes/b-roll → the ladder from Seedance 2.0 (45) down to Minimax (11).
-- Longer than 15s → it's a scene pipeline (`playbooks/longform.md`):
-  VO-first narration with a pinned voice, per-scene generation at mixed
-  tiers, reference chaining for continuity, local assembly. A 2-minute
-  piece lands around 150–300 credits depending on tier mix.
-- Generate at 720p; upscale only the winning cut.
-- `get_cost: true` preflights any generation for free — the pipeline
-  preflights before every spend.
+| Model | Credits | Best at |
+|---|---|---|
+| `marketing_studio_video` | 60 (12s) / 75 (15s max) | The only speech + lipsync + product-lock package — all talking-presenter work |
+| `cinematic_studio_3_0` | 50 | Cinema-grade look, genre control (audio off by default) |
+| `seedance_2_0` std / fast | 45 / 35 | Reference-driven continuity: consistent identity across scenes, start/end frames, up to 4K |
+| `seedance_2_0_mini` | 25 | Same reference system at half the price (720p max) |
+| `veo3_1` (8s) | 22 | Ultra-realistic cinematic (4/6/8s only) |
+| `kling3_0` | 20 | Multi-shot, audio sync, motion transfer |
+| `kling3_0_turbo` | 15 | Fast start-frame animation (no audio) |
+| `seedance1_5` | 14.39 / **12s** | Cheapest per second on the ladder |
+| `veo3_1_lite` (8s) | 12 | Budget batch b-roll |
+| `minimax_hailuo` (10s) | 11 | Physics + facial emotion (no audio at 768p) |
 
-## Hard-won platform facts (all verified in production)
+Rules that survived real production: talking → Marketing Studio, nothing
+else lipsyncs its own speech · scene continuity → Seedance 2.0 references
+· longer than 15s is always a scene pipeline (`playbooks/longform.md`) —
+a 2-minute piece lands around 150–300 credits on a mixed tier ·
+generate at 720p, upscale only the winning cut.
+
+## Platform gotchas
 
 - **Casting**: Higgsfield auto-picks an avatar if you don't pin one.
   The pipeline forbids submitting presenter video without an avatar ID.
@@ -103,11 +115,27 @@ The full measured cost ladder and model strengths:
 - **Chat attachments**: files pasted into Claude chat can't reach
   Higgsfield tools — use the `media_upload_widget` MCP flow.
 
-## Quickstart
+## Getting started
 
-1. Clone, open in [Claude Code](https://claude.com/claude-code), connect
-   the Higgsfield connector (or `npm i -g @higgsfield/cli` +
-   `higgsfield auth login` + `npx skills add higgsfield-ai/skills`).
+**Authentication first — note there is no API key.** Higgsfield doesn't
+issue keys; everything is OAuth against your own account, and your
+generation credits are billed there. Two ways in:
+
+- **Connector (recommended):** on [claude.ai](https://claude.ai), add the
+  Higgsfield connector under Settings → Connectors and sign in. Claude
+  Code sessions then reach your account through it — nothing to paste,
+  nothing stored in the repo.
+- **CLI:** `npm i -g @higgsfield/cli`, then `higgsfield auth login`
+  (opens a browser), then `npx skills add higgsfield-ai/skills`. Works
+  on a local machine; headless/remote containers can't complete the
+  browser flow — use the connector there.
+
+Because auth is OAuth, this repo never contains credentials — nothing to
+scrub before forking or sharing your copy.
+
+Then:
+
+1. Clone and open the repo in [Claude Code](https://claude.com/claude-code).
 2. `apt-get install -y ffmpeg` if missing.
 3. Copy `briefs/TEMPLATE.md` to `briefs/<your-product>.md`, fill it in —
    Cast and Voice are required for spoken video.
@@ -138,4 +166,7 @@ docs/video-models.md      measured model costs + strengths
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+**PolyForm Shield 1.0.0** — free to use for any purpose, including
+commercially producing your own ads with it. The one thing you may not
+do is offer the software itself (or a derivative) as a competing
+product or service. See [LICENSE](LICENSE).
