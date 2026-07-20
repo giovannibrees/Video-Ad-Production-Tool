@@ -70,10 +70,11 @@ described in `playbooks/longform.md` ("Clip Factory app" section).
 
 ## What the output looks like
 
-End cards are built locally from the product photo (free, ffmpeg
-zoom + text) instead of burning a second video take:
+Hook, product-on-wrist reveal, end card — the end card is built locally
+from the product photo (free, ffmpeg zoom + text) instead of burning a
+second video take:
 
-![End card example](docs/images/endcard-example.jpg)
+![Frames from a finished ad: hook, reveal, end card](docs/images/bracelets-ad-frames.jpg)
 
 ## Video models: cost and strengths
 
