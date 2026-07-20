@@ -1,0 +1,141 @@
+# Video Ad Production Tool
+
+An agent-driven factory for short vertical video ads (UGC style and
+longer scene-based pieces), built on **Claude Code** + **Higgsfield**.
+You write a brief; the system runs a gated production pipeline — script →
+casting → previz → take → QC — and never spends generation credits on
+anything you haven't approved.
+
+![Clip Factory](docs/images/clip-factory-cover.jpg)
+
+## Why gates
+
+Video models are stochastic and priced per take (a talking-presenter take
+is 60–75 credits). The pipeline's job is to make every surprise happen at
+the **cheap** stage:
+
+| Gate | What you approve | Cost to reach it |
+|------|------------------|------------------|
+| G1 Script | Full script text, beat by beat | 0 credits |
+| G2 Cast | Who is on camera (contact sheet, no auto-picks ever) | 0 |
+| G2b Voice | Accent/voice (US/UK steer or pinned voice) | 0 |
+| G3 Previz | Key-frame stills of cast + product + setting | ~1 credit/beat |
+| G4 Take | The video generation itself | 60–75/take (talking) |
+| G5 QC | Machine checks + your eyes | 0 (local ffmpeg) |
+
+The approved previz frame is passed as the take's start image, so the
+video opens on exactly the look you signed off:
+
+![Previz still (left) becomes the take's opening frame (right)](docs/images/previz-to-take.png)
+
+## The three surfaces
+
+**1. This repo — the production pipeline.** Open it in Claude Code with a
+Higgsfield connector (or the `higgsfield` CLI + skills). `CLAUDE.md`
+routes every brief through `playbooks/production.md` and a lane playbook
+(product ads, faceless, avatar, longform). Local ffmpeg does QC
+(silence-detection to verify comedic beats actually land, frame
+extraction for product fidelity), end cards, and stitching — video
+credits are never spent on assembly.
+
+**2. The control panel — a Claude artifact.** `panel/studio.html` is a
+single-file page published as a private claude.ai artifact with live MCP
+access to your Higgsfield account: brief builder with casting roster and
+age/gender filters, voice picker with US/UK accent tagging, full-text
+script review, cost meter, and a scene-by-scene feedback funnel. See
+`panel/README.md`.
+
+![Brief builder with casting roster, gates, and cost meter](docs/images/panel-brief-builder.png)
+
+Casting is a first-class user decision — the pipeline builds contact
+sheets from Higgsfield's preset avatars (free) and **waits** for a pick;
+the backend is never allowed to auto-cast:
+
+![Casting contact sheet](docs/images/casting-contact-sheet.jpg)
+
+**3. Clip Factory — a deployed web app** (Higgsfield Websites `app`
+type, running on Cloudflare Workers with sign-in-with-Higgsfield).
+Scene/Previz modes, a quality-tier pill mapped to the measured price
+ladder, product + start-frame reference slots for scene continuity,
+briefs and feedback stored in D1:
+
+![Clip Factory app](docs/images/app-studio.png)
+
+The app source is built from Higgsfield's proprietary starter template
+and runs only on their platform, so it isn't vendored here — rebuild it
+in ~an hour by opening this repo in Claude Code and asking for the app
+described in `playbooks/longform.md` ("Clip Factory app" section).
+
+## What the output looks like
+
+End cards are built locally from the product photo (free, ffmpeg
+zoom + text) instead of burning a second video take:
+
+![End card example](docs/images/endcard-example.jpg)
+
+## Video model economics
+
+The full measured cost ladder and model strengths:
+**[docs/video-models.md](docs/video-models.md)**. The headline rules:
+
+- Talking on camera → Marketing Studio (60 cr @12s / 75 @15s, 15s max).
+  It's the only speech+lipsync+product-lock package.
+- Scenes/b-roll → the ladder from Seedance 2.0 (45) down to Minimax (11).
+- Longer than 15s → it's a scene pipeline (`playbooks/longform.md`):
+  VO-first narration with a pinned voice, per-scene generation at mixed
+  tiers, reference chaining for continuity, local assembly. A 2-minute
+  piece lands around 150–300 credits depending on tier mix.
+- Generate at 720p; upscale only the winning cut.
+- `get_cost: true` preflights any generation for free — the pipeline
+  preflights before every spend.
+
+## Hard-won platform facts (all verified in production)
+
+- **Casting**: Higgsfield auto-picks an avatar if you don't pin one.
+  The pipeline forbids submitting presenter video without an avatar ID.
+- **Ages**: all ~40 preset avatars read 18–35. Older presenters are
+  minted as custom avatars from an approved 1-credit character reference.
+- **Voice**: Marketing Studio has no voice parameter — steer the accent
+  in the prompt's audio direction AND verify at QC, or pin a preset voice
+  and apply it as a `voice_change` revoice pass on the finished take.
+- **Duration**: every generation model caps at ~15s. Length comes from
+  scenes + stitching, not longer takes.
+- **Chat attachments**: files pasted into Claude chat can't reach
+  Higgsfield tools — use the `media_upload_widget` MCP flow.
+
+## Quickstart
+
+1. Clone, open in [Claude Code](https://claude.com/claude-code), connect
+   the Higgsfield connector (or `npm i -g @higgsfield/cli` +
+   `higgsfield auth login` + `npx skills add higgsfield-ai/skills`).
+2. `apt-get install -y ffmpeg` if missing.
+3. Copy `briefs/TEMPLATE.md` to `briefs/<your-product>.md`, fill it in —
+   Cast and Voice are required for spoken video.
+4. Tell Claude: *"Produce the brief in `briefs/<your-product>.md` per
+   `playbooks/production.md`."* It will show scripts, wait for casting,
+   show previz, confirm cost, and deliver a QC'd stitched ad into
+   `output/<brief>/`.
+5. After watching, file scene-by-scene feedback
+   (`briefs/FEEDBACK-TEMPLATE.md`) — flagged scenes get regenerated,
+   winning ingredients go to `assets/higgsfield-ids.md` and compound.
+
+## Repo map
+
+```
+CLAUDE.md                 agent instructions (pipeline routing + rules)
+playbooks/production.md   the five gates, price ladder, QC, feedback loop
+playbooks/product-ads.md  UGC ad lane (hooks, prompt patterns)
+playbooks/longform.md     scene pipeline for 30s–3min pieces
+playbooks/faceless.md     narrated/faceless lane
+playbooks/avatar.md       Soul character (your own face) lane
+briefs/TEMPLATE.md        the brief format — the control panel of every ad
+briefs/FEEDBACK-TEMPLATE.md  scene-by-scene review format
+tools/                    ffmpeg post-production (stitch, captions, crop)
+panel/                    the Claude-artifact control panel (see its README)
+assets/higgsfield-ids.md  your account's reusable IDs (starts empty)
+docs/video-models.md      measured model costs + strengths
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
