@@ -5,6 +5,19 @@ Measured with free `get_cost` preflights (July 2026) at a standard scene:
 re-preflight before relying on a number. Full details per model:
 `higgsfield model get <id>` / `models_explore(action:'get')`.
 
+### Credit pricing (Higgsfield plans, July 20, 2026)
+
+| Plan | Monthly credits | Price | Effective cost |
+|---|---|---|---|
+| Basic | 120 | $9/month | $0.075 per credit |
+| Plus | 1,000 | $49/month | $0.049 per credit |
+| Ultra | 3,000 | $129/month | $0.043 per credit |
+
+In dollars on the Plus plan, that makes a talking-presenter take about
+**$2.95–3.70**, a complete 14-second ad (previz + take + local end card)
+about **$3.10**, and a 2-minute scene-pipeline piece roughly **$7–15**
+depending on tier mix. Plan pricing changes — check higgsfield.ai.
+
 ## The talking-presenter tier (no substitute)
 
 | Model | Credits | Why it exists |
